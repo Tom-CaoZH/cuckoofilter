@@ -1,12 +1,15 @@
 #include "cuckoofilter.h"
+#include "hashutil.h"
 
 #include <assert.h>
 #include <math.h>
 
 #include <iostream>
 #include <vector>
+#include <string>
 
 using cuckoofilter::CuckooFilter;
+using cuckoofilter::HashUtil;
 
 int main(int argc, char **argv) {
   size_t total_items = 1000000;
@@ -23,7 +26,7 @@ int main(int argc, char **argv) {
   // Insert items to this cuckoo filter
   size_t num_inserted = 0;
   for (size_t i = 0; i < total_items; i++, num_inserted++) {
-    if (filter.Add(i) != cuckoofilter::Ok) {
+    if (filter.Add(HashUtil::SuperFastHash(std::to_string(i))) != cuckoofilter::Ok) {
       break;
     }
   }
@@ -31,14 +34,14 @@ int main(int argc, char **argv) {
   // Check if previously inserted items are in the filter, expected
   // true for all items
   for (size_t i = 0; i < num_inserted; i++) {
-    assert(filter.Contain(i) == cuckoofilter::Ok);
+    assert(filter.Contain(HashUtil::SuperFastHash(std::to_string(i))) == cuckoofilter::Ok);
   }
 
   // Check non-existing items, a few false positives expected
   size_t total_queries = 0;
   size_t false_queries = 0;
   for (size_t i = total_items; i < 2 * total_items; i++) {
-    if (filter.Contain(i) == cuckoofilter::Ok) {
+    if (filter.Contain(HashUtil::SuperFastHash(std::to_string(i))) == cuckoofilter::Ok) {
       false_queries++;
     }
     total_queries++;
